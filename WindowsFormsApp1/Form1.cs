@@ -15,6 +15,7 @@ namespace WindowsFormsApp1
 
         private Bingo kombi = new Bingo();
         private int step = 0;
+        private int clickCounter = 0;
 
         public Form1()
         {
@@ -25,6 +26,7 @@ namespace WindowsFormsApp1
             }
             debug();
             ispisi();
+            ispisiCounter();
 
         }
 
@@ -124,8 +126,11 @@ namespace WindowsFormsApp1
                         Label label = new Label();
                         label.Text = i + "";
                         label.Size = new Size(width, height);
-                        label.TextAlign = ContentAlignment.MiddleCenter;
+                        label.TextAlign = ContentAlignment.MiddleCenter;                   
+
                         int column = i < 10 ? 0 : i < 20 ? 1 : i < 30 ? 2 : i < 40 ? 3 : i < 50 ? 4 : i < 60 ? 5 : i < 70 ? 6 : i < 80 ? 7 : 8;
+                        label.Click += new EventHandler(labelClick);
+                        label.MouseDoubleClick += new MouseEventHandler(labelDoubleClick);
                         tableLayoutPanel1.Controls.Add(label, column, row);
                     }
                     if(j == 2)
@@ -140,6 +145,41 @@ namespace WindowsFormsApp1
         
             }
 
+        }
+
+        void labelClick(object sender, EventArgs e)
+        {
+            Label label = (Label)sender;
+            if(label.Tag != null)
+            {
+                int tag = (int)label.Tag;
+                if (tag == 99) return;
+            }
+            label.Tag = 99;
+            Color color = Color.Green;
+            if(clickCounter >= 35)
+            {
+                color = Color.Red;
+            }
+            label.BackColor = color;
+            clickCounter++;
+            ispisiCounter();
+        }
+
+        void labelDoubleClick(object sender, MouseEventArgs e)
+        {
+            Label label = (Label)sender;
+            int tag = (int)label.Tag;
+            if (tag == 1) return;
+            label.Tag = 1;
+            label.BackColor = Color.Transparent;
+            clickCounter--;
+            ispisiCounter();
+        }
+
+        private void ispisiCounter()
+        {
+            label2.Text = "Izvuceno brojeva: " + clickCounter;
         }
 
         private String formatString(int[] data)
@@ -235,47 +275,68 @@ namespace WindowsFormsApp1
             StringBuilder htmlBuilder = new StringBuilder();
             htmlBuilder.Append("<html><body>");
 
-            htmlBuilder.Append("<table border='1'>");
+            htmlBuilder.Append("<head><style>td{text-align:center;width:50px;height:30px;border: 1px solid black;}table{border-collapse: collapse;}</style></head>");
 
+            htmlBuilder.Append("<table>");
+
+            int itemCount = 0;
             foreach(BingoKombi item in kombi.kombi)
             {
-                htmlBuilder.Append("<tr>");
-                List<int> lista = new List<int>();
-                foreach(int i in item.firstRow)
+                for(int d = 0; d < 3; d++)
                 {
-                    lista.Add(i);
-                }
-                for(int i = 0; i < 9; i++)
-                {
-                    String dataS = "-";
-                    if(lista.First() < 0 * 10 + 10)
+                    htmlBuilder.Append("<tr>");
+                    List<int> lista = new List<int>();
+                    if(d == 0)
                     {
-                        dataS = lista.First().ToString();
-                        lista.RemoveAt(0);
-                    }else if(lista.First() == 90 && i == 8)
-                    {
-                        dataS = "90";
+                        foreach (int i in item.firstRow)
+                        {
+                            lista.Add(i);
+                        }
                     }
-                    htmlBuilder.Append("<td>" + dataS + "</td>");
+                    else if(d == 1)
+                    {
+                        foreach (int i in item.secondRow)
+                        {
+                            lista.Add(i);
+                        }
+                    }
+                    else
+                    {
+                        foreach (int i in item.thirdRow)
+                        {
+                            lista.Add(i);
+                        }
+                    }
+                    for (int i = 0; i < 9; i++)
+                    {
+                        String dataS = " ";
+                        if (lista.Count() > 0)
+                        {
+                            int value = lista.First();
+                            if (value < ((i * 10) + 10))
+                            {
+                                dataS = lista.First().ToString();
+                                lista.RemoveAt(0);
+                            }
+                            else if (lista.First() == 90 && i == 8)
+                            {
+                                dataS = "90";
+                            }
+                        }
+                        htmlBuilder.Append("<td>" + dataS + "</td>");
+                    }
+                    htmlBuilder.Append("</tr>");
                 }
-                htmlBuilder.Append("</tr>");
-                foreach (int i in item.secondRow)
-                {
-                    htmlBuilder.Append("<td>" + i + "</td>");
-                }
-                htmlBuilder.Append("</tr>");
-                foreach (int i in item.thirdRow)
-                {
-                    htmlBuilder.Append("<td>" + i + "</td>");
-                }
-                htmlBuilder.Append("</tr>");
+                if(itemCount < 5) htmlBuilder.Append("<tr><td colspan='9' style='border:0px'/></tr>");
+                itemCount++;
             }
 
             htmlBuilder.Append("</table>");
 
             htmlBuilder.Append("</body></html>");
-
-            System.IO.File.WriteAllText(@"C:\Users\ana_travica\Desktop\temp\tem.html", htmlBuilder.ToString());
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            path = path + "/temp/temp.html";
+            System.IO.File.WriteAllText(path, htmlBuilder.ToString());
 
         }
     }
