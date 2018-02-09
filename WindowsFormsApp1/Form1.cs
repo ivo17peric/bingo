@@ -17,6 +17,8 @@ namespace WindowsFormsApp1
         private int step = 0;
         private int clickCounter = 0;
 
+        private List<int> numbers = new List<int>();
+
         public Form1()
         {
             InitializeComponent();
@@ -24,9 +26,10 @@ namespace WindowsFormsApp1
             {
                 kombi.kombi[i] = new BingoKombi();
             }
-            debug();
-            ispisi();
+            //debug();
+            //ispisi();
             ispisiCounter();
+
 
         }
 
@@ -40,6 +43,22 @@ namespace WindowsFormsApp1
                     if (number > 0 && number < 91)
                     {
                         numberAdd(number);
+                    }
+                }
+                catch (FormatException ex) { }
+            }
+        }
+
+        private void textBox2_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                try
+                {
+                    int number = Int32.Parse(textBox2.Text);
+                    if (number > 0 && number < 91)
+                    {
+                        izvuciBroj(number);
                     }
                 }
                 catch (FormatException ex) { }
@@ -65,11 +84,48 @@ namespace WindowsFormsApp1
             ispisi();
 
             textBox1.ResetText();
+
+  
+        }
+
+        private void izvuciBroj(int value)
+        {   
+            for(int i = 0; i < tableLayoutPanel1.RowCount; i++)
+            {
+                for(int j = 0; j < tableLayoutPanel1.ColumnCount; j++)
+                {
+                    Control c = tableLayoutPanel1.GetControlFromPosition(j, i);
+                    if(c != null)
+                    {
+                        try
+                        {
+                            int number = Int32.Parse(c.Text);
+                            if (number > 0 && number < 91)
+                            {
+                                if(number == value)
+                                {
+                                    labelClick(c, null);
+                                    textBox2.Text = "";
+                                }
+                            }
+                        }
+                        catch (FormatException ex) { }
+                    }
+                }
+            }
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if(!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
             {
                 e.Handled = true;
             }
@@ -81,34 +137,37 @@ namespace WindowsFormsApp1
 
             foreach (BingoKombi itemKombi in kombi.kombi)
             {
-                labelString.Append("==========================\n");
+                labelString.Append("==================\n");
                 labelString.Append("||");
                 labelString.Append(formatString(itemKombi.firstRow));
-                labelString.Append("||");
+                labelString.Append(" ||");
                 labelString.Append("\n");
                 labelString.Append("||");
                 labelString.Append(formatString(itemKombi.secondRow));
-                labelString.Append("||");
+                labelString.Append(" ||");
                 labelString.Append("\n");
                 labelString.Append("||");
                 labelString.Append(formatString(itemKombi.thirdRow));
-                labelString.Append("||");
-                labelString.Append("\n");
-                labelString.Append("\n======================\n");
+                labelString.Append(" ||");
                 labelString.Append("\n");
             }
+            labelString.Append("==================\n");
 
             label1.Text = labelString.ToString();
 
+        }
+
+        void stvariTablicu()
+        {
             int row = 0;
             int width = 30, height = 20;
-            
+
             foreach (BingoKombi itemKombi in kombi.kombi)
             {
                 int[] data = null;
                 for (int j = 0; j < 3; j++)
                 {
-                    if(j == 0)
+                    if (j == 0)
                     {
                         data = itemKombi.firstRow;
                     }
@@ -123,17 +182,28 @@ namespace WindowsFormsApp1
 
                     foreach (int i in data)
                     {
-                        Label label = new Label();
-                        label.Text = i + "";
-                        label.Size = new Size(width, height);
-                        label.TextAlign = ContentAlignment.MiddleCenter;                   
-
                         int column = i < 10 ? 0 : i < 20 ? 1 : i < 30 ? 2 : i < 40 ? 3 : i < 50 ? 4 : i < 60 ? 5 : i < 70 ? 6 : i < 80 ? 7 : 8;
-                        label.Click += new EventHandler(labelClick);
-                        label.MouseDoubleClick += new MouseEventHandler(labelDoubleClick);
-                        tableLayoutPanel1.Controls.Add(label, column, row);
+
+                        Control c = tableLayoutPanel1.GetControlFromPosition(column, row);
+                        if (c != null)
+                        {
+                            Label label = (Label)c;
+                            label.Text = i + "";
+                        }
+                        else
+                        {
+                            Label label = new Label();
+                            label.Text = i + "";
+                            label.Size = new Size(width, height);
+                            label.TextAlign = ContentAlignment.MiddleCenter;
+
+                            label.Click += new EventHandler(labelClick);
+                            label.MouseDoubleClick += new MouseEventHandler(labelDoubleClick);
+                            tableLayoutPanel1.Controls.Add(label, column, row);
+                        }
+
                     }
-                    if(j == 2)
+                    if (j == 2)
                     {
                         row = row + 2;
                     }
@@ -142,9 +212,8 @@ namespace WindowsFormsApp1
                         row++;
                     }
                 }
-        
-            }
 
+            }
         }
 
         void labelClick(object sender, EventArgs e)
@@ -164,6 +233,13 @@ namespace WindowsFormsApp1
             label.BackColor = color;
             clickCounter++;
             ispisiCounter();
+            try
+            {
+                int value = Int32.Parse(label.Text);
+                numbers.Add(value);
+                ispisiSveBrojeve();
+            }
+            catch (Exception ex) { }
         }
 
         void labelDoubleClick(object sender, MouseEventArgs e)
@@ -175,6 +251,13 @@ namespace WindowsFormsApp1
             label.BackColor = Color.Transparent;
             clickCounter--;
             ispisiCounter();
+            try
+            {
+                int value = Int32.Parse(label.Text);
+                numbers.Remove(value);
+                ispisiSveBrojeve();
+            }
+            catch (Exception ex) { }
         }
 
         private void ispisiCounter()
@@ -182,54 +265,38 @@ namespace WindowsFormsApp1
             label2.Text = "Izvuceno brojeva: " + clickCounter;
         }
 
-        private String formatString(int[] data)
+        private void ispisiSveBrojeve()
         {
-            String format1 = "  A BB CC DD EE FF GG HH II ";
-            foreach (int item in data)
+            label3.Text = "";
+            for(int i = 0; i < numbers.Count; i++)
             {
-                if (item == 0)
+                if(i != 0 && i % 10 == 0)
                 {
-
+                    label3.Text = label3.Text + "\n";
                 }
-                else if (item < 10)
+                int value = numbers.ElementAt(i);
+                if(value < 10)
                 {
-                    format1 = format1.Replace("A", item.ToString());
+                    label3.Text = label3.Text + "   " + numbers.ElementAt(i);           
                 }
-                else if (item < 20)
+                else
                 {
-                    format1 = format1.Replace("BB", item.ToString());
-                }
-                else if (item < 30)
-                {
-                    format1 = format1.Replace("CC", item.ToString());
-                }
-                else if (item < 40)
-                {
-                    format1 = format1.Replace("DD", item.ToString());
-                }
-                else if (item < 50)
-                {
-                    format1 = format1.Replace("EE", item.ToString());
-                }
-                else if (item < 60)
-                {
-                    format1 = format1.Replace("FF", item.ToString());
-                }
-                else if (item < 70)
-                {
-                    format1 = format1.Replace("GG", item.ToString());
-                }
-                else if (item < 80)
-                {
-                    format1 = format1.Replace("HH", item.ToString());
-                }
-                else if (item <= 90)
-                {
-                    format1 = format1.Replace("II", item.ToString());
+                    label3.Text = label3.Text + "  " + numbers.ElementAt(i);
                 }
             }
-            format1 = format1.Replace("A", " ").Replace("B", " ").Replace("C", " ").Replace("D", " ")
-                    .Replace("E", " ").Replace("F", " ").Replace("G", " ").Replace("H", " ").Replace("I", " ");
+        }
+
+        private String formatString(int[] data)
+        {
+            String format1 = "";
+            foreach(int i in data)
+            {
+                if(i < 10)
+                {
+                    format1 = format1 + " ";
+                }
+                format1 = format1 + " " + i;
+            }
 
             return format1;
         }
@@ -338,6 +405,11 @@ namespace WindowsFormsApp1
             path = path + "/temp/temp.html";
             System.IO.File.WriteAllText(path, htmlBuilder.ToString());
 
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            stvariTablicu();
         }
     }
 
