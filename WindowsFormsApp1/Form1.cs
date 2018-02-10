@@ -26,8 +26,8 @@ namespace WindowsFormsApp1
             {
                 kombi.kombi[i] = new BingoKombi();
             }
-            //debug();
-            //ispisi();
+            debug();
+            ispisi();
             ispisiCounter();
 
 
@@ -162,6 +162,24 @@ namespace WindowsFormsApp1
             int row = 0;
             int width = 30, height = 20;
 
+            for(int i = 0; i < 20; i++)
+            {
+                for(int j = 0; j < 9; j++)
+                {
+                    Control c = tableLayoutPanel1.GetControlFromPosition(j, i);
+
+                    Label label = new Label();
+                    label.Text = i + ":" + j;
+                    label.Size = new Size(width, height);
+                    label.TextAlign = ContentAlignment.MiddleCenter;
+
+                    //label.Click += new EventHandler(labelClick);
+                    //label.MouseDoubleClick += new MouseEventHandler(labelDoubleClick);
+                    tableLayoutPanel1.Controls.Add(label, j, i);
+                }
+            }
+
+            return;
             foreach (BingoKombi itemKombi in kombi.kombi)
             {
                 int[] data = null;
