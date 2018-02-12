@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WindowsFormsApp1
@@ -18,6 +16,7 @@ namespace WindowsFormsApp1
         private int clickCounter = 0;
 
         private List<int> numbers = new List<int>();
+        private List<int> numbersAdded = new List<int>();
 
         public Form1()
         {
@@ -26,10 +25,7 @@ namespace WindowsFormsApp1
             {
                 kombi.kombi[i] = new BingoKombi();
             }
-            debug();
-            ispisi();
             ispisiCounter();
-
 
         }
 
@@ -40,13 +36,23 @@ namespace WindowsFormsApp1
                 try
                 {
                     int number = Int32.Parse(textBox1.Text);
+                    if (numbersAdded.Contains(number))
+                    {
+                        MessageBox.Show("Broj je vec upisan");
+                        textBox1.Text = "";
+                        return;
+                    }
                     if (number > 0 && number < 91)
                     {
                         numberAdd(number);
+                        numbersAdded.Add(number);
                     }
+
+                    e.SuppressKeyPress = true;
                 }
-                catch (FormatException ex) { }
+                catch { }
             }
+
         }
 
         private void textBox2_KeyDown(object sender, KeyEventArgs e)
@@ -59,9 +65,10 @@ namespace WindowsFormsApp1
                     if (number > 0 && number < 91)
                     {
                         izvuciBroj(number);
+                        e.SuppressKeyPress = true;
                     }
                 }
-                catch (FormatException ex) { }
+                catch { }
             }
         }
 
@@ -85,7 +92,6 @@ namespace WindowsFormsApp1
 
             textBox1.ResetText();
 
-  
         }
 
         private void izvuciBroj(int value)
@@ -109,7 +115,7 @@ namespace WindowsFormsApp1
                                 }
                             }
                         }
-                        catch (FormatException ex) { }
+                        catch { }
                     }
                 }
             }
@@ -162,24 +168,10 @@ namespace WindowsFormsApp1
             int row = 0;
             int width = 30, height = 20;
 
-            for(int i = 0; i < 20; i++)
-            {
-                for(int j = 0; j < 9; j++)
-                {
-                    Control c = tableLayoutPanel1.GetControlFromPosition(j, i);
+            panel1.Show();
+            progressBar1.Maximum = 90;
+            progressBar1.Value = 0;
 
-                    Label label = new Label();
-                    label.Text = i + ":" + j;
-                    label.Size = new Size(width, height);
-                    label.TextAlign = ContentAlignment.MiddleCenter;
-
-                    //label.Click += new EventHandler(labelClick);
-                    //label.MouseDoubleClick += new MouseEventHandler(labelDoubleClick);
-                    tableLayoutPanel1.Controls.Add(label, j, i);
-                }
-            }
-
-            return;
             foreach (BingoKombi itemKombi in kombi.kombi)
             {
                 int[] data = null;
@@ -219,6 +211,7 @@ namespace WindowsFormsApp1
                             label.MouseDoubleClick += new MouseEventHandler(labelDoubleClick);
                             tableLayoutPanel1.Controls.Add(label, column, row);
                         }
+                        progressBar1.Value++;
 
                     }
                     if (j == 2)
@@ -232,6 +225,7 @@ namespace WindowsFormsApp1
                 }
 
             }
+            panel1.Hide();
         }
 
         void labelClick(object sender, EventArgs e)
@@ -257,7 +251,7 @@ namespace WindowsFormsApp1
                 numbers.Add(value);
                 ispisiSveBrojeve();
             }
-            catch (Exception ex) { }
+            catch { }
         }
 
         void labelDoubleClick(object sender, MouseEventArgs e)
@@ -275,7 +269,7 @@ namespace WindowsFormsApp1
                 numbers.Remove(value);
                 ispisiSveBrojeve();
             }
-            catch (Exception ex) { }
+            catch { }
         }
 
         private void ispisiCounter()
@@ -419,15 +413,26 @@ namespace WindowsFormsApp1
             htmlBuilder.Append("</table>");
 
             htmlBuilder.Append("</body></html>");
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            path = path + "/temp/temp.html";
-            System.IO.File.WriteAllText(path, htmlBuilder.ToString());
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string folder = path + "/bingo/files";
+            Directory.CreateDirectory(folder);
+            string fileName = "bingo_" + DateTime.Now.Day + "_" + DateTime.Now.Month + "_" + DateTime.Now.Year + "__" + (new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()) +".html";
+            path = folder + "/" + fileName;
+            File.WriteAllText(path, htmlBuilder.ToString());
+
+            System.Diagnostics.Process.Start(@"" + folder);
 
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
             stvariTablicu();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            debug();
+            ispisi();
         }
     }
 
